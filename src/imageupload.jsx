@@ -1,62 +1,75 @@
-import React, {useState} from "react";
+import React, { useState } from 'react';
+import { storage } from './cloudConfig';
+import { ref, uploadBytes } from 'firebase/storage';
 
 const ImageUpload = () => {
+  const [file, setFile] = useState(null);
+  const [images, setImages] = useState([]);
 
-    const [image,setimage] = useState(null);
-    const [name,setname] = useState("");
-    
-    
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]);
+  };
 
-    const handleImage = (e) => {
-        setimage(e.target.files[0]);
-    }
+  const resizeImage = (image) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'Anonymous'; // Habilitar CORS
 
-    const handleName = (e) => {
-        setname(e.target.value);
-    }
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = 400;
+        let height = 250;
 
-    const handleSubmit = (e) => {
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Converter canvas para base64
+        const dataUrl = canvas.toDataURL('image/jpeg');
+
+        resolve(dataUrl);
+      };
+
+      img.onerror = (error) => reject(error);
+
+      img.src = URL.createObjectURL(image);
+    });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const formatodata = new FormData();
+    if (!file) return;
 
-    formatodata.append('image',image);
-    formatodata.append('name',name);
-
-
-    fetch('http://localhost:5000/upload',{
-        method:'POST',
-        body: JSON.stringify(formatodata), // data é o corpo da solicitação que você está enviando
-  headers: {
-    'Content-Type': 'application/json'}
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log(data);
-    })
-    .catch(error => {
-        console.error('Error:',error)
-    } ) 
+    const storageRef = ref(storage, `images/${file.name}`);
+    try {
+      await uploadBytes(storageRef, file);
+      const resizedImageUrl = await resizeImage(file); // Redimensionar imagem
+      setImages([...images, resizedImageUrl]);
+      console.log('Image uploaded successfully');
+    } catch (error) {
+      console.error('Error uploading image:', error);
     }
+  };
 
-
-
-
-    return (
-        <form onSubmit={handleSubmit} className="p-4">
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Upload Image</label>
-            <input type="file" onChange={handleImage} className="mt-1 block w-full" />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Image Name</label>
-            <input type="text" value={name} onChange={handleName} className="mt-1 block w-full" />
-          </div>
-          <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">Upload</button>
-        </form>
-      );
-    
-
+  return (
+    <div className="container ml-4 mr-4 py-4">
+      
+      <form onSubmit={handleSubmit} className="mb-4 flex items-center"><div></div>
+        <input type="file" onChange={handleFileChange} className="border border-gray-300 rounded-lg p-2 bg-white text-gray-900 shadow-sm focus:outline-none focus:ring focus:ring-blue-400 focus:border-blue-500" />
+        <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2">
+          Upload
+        </button>
+      </form>
+      <div className="grid grid-cols-3 gap-4">
+        {images.map((url, index) => (
+          <img key={index} src={url} alt={`Uploaded ${index}`} className="max-w-full max-h-full"/>
+        ))}
+      </div>
+    </div>
+  );
 
 };
 
-export default ImageUpload; 
+export default ImageUpload;

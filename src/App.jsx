@@ -1,18 +1,29 @@
-import React from "react";
-import ImageUpload from "./imageupload";
+import React, { useState } from 'react';
+import ImageUpload from './imageupload';
+import Gallery from './displayGallery';
 
+const App = () => {
+  const [showGallery, setShowGallery] = useState(false);
 
-function App() {
+  const handleToggleGallery = () => {
+    setShowGallery(!showGallery);
+  };
+
   return (
-
-    <div className="container mx-auto">
-
-    <h1 className="text-2xl text-center my-4">Image Upload Site</h1>
-    <ImageUpload />
+    <div className="App">
+      {showGallery ? (
+        <Gallery />
+      ) : (
+        <ImageUpload />
+      )}
+<div className="fixed top-0 right-0 p-4">
+  <button onClick={handleToggleGallery} className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded shadow">
+    {showGallery ? 'Hide Gallery' : 'Show Gallery'}
+  </button>
+</div>
 
     </div>
-     
   );
-}
+};
 
 export default App;
