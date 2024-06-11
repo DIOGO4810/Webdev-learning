@@ -54,21 +54,35 @@ const ImageUpload = () => {
   };
 
   return (
-    <div className="container ml-4 mr-4 py-4">
+    <div className="container mx-auto py-4">
+      <div className="flex justify-center mb-4">
+        <form onSubmit={handleSubmit} className="flex items-center space-x-2">
+          <input 
+            type="file" 
+            onChange={handleFileChange} 
+            className="border border-gray-300 rounded-lg p-2 bg-white text-gray-900 shadow-sm focus:outline-none focus:ring focus:ring-blue-400 focus:border-blue-500" 
+          />
+          <button 
+            type="submit" 
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Upload
+          </button>
+        </form>
+      </div>
       
-      <form onSubmit={handleSubmit} className="mb-4 flex items-center"><div></div>
-        <input type="file" onChange={handleFileChange} className="border border-gray-300 rounded-lg p-2 bg-white text-gray-900 shadow-sm focus:outline-none focus:ring focus:ring-blue-400 focus:border-blue-500" />
-        <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2">
-          Upload
-        </button>
-      </form>
       <div className="grid grid-cols-3 gap-4">
         {images.map((url, index) => (
-          <img key={index} src={url} alt={`Uploaded ${index}`} className="max-w-full max-h-full"/>
+          <img 
+            key={index} 
+            src={url} 
+            alt={`Uploaded ${index}`} 
+            className="w-full h-auto rounded shadow" 
+          />
         ))}
       </div>
     </div>
   );
+  
 
 };
 
