@@ -1,43 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { ref, listAll, getDownloadURL, getMetadata, deleteObject, uploadString } from 'firebase/storage';
+import { ref, listAll, getDownloadURL, getMetadata, deleteObject } from 'firebase/storage';
 import { storage } from './cloudConfig'; // Importe a instância do Firebase Storage
 
-const resizeImage = async (imageUrl, width, height) => {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.crossOrigin = 'Anonymous';
 
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
-
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
-
-            const dataUrl = canvas.toDataURL('image/jpeg');
-            resolve(dataUrl);
-        };
-
-        img.onerror = (error) => reject(error);
-        img.src = imageUrl;
-    });
-};
-
-const uploadResizedImage = async (file, width, height) => {
-    try {
-        const originalUrl = URL.createObjectURL(file);
-        const resizedDataUrl = await resizeImage(originalUrl, width, height);
-
-        const imageRef = ref(storage, `images/resized_${file.name}`);
-        await uploadString(imageRef, resizedDataUrl, 'data_url');
-
-        const downloadUrl = await getDownloadURL(imageRef);
-        return downloadUrl;
-    } catch (error) {
-        console.error('Error uploading resized image:', error);
-    }
-};
 
 const Gallery = () => {
     const [images, setImages] = useState({});
@@ -74,19 +39,7 @@ const Gallery = () => {
         }
     };
 
-    const handleUpload = async (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
 
-        const resizedImageUrl = await uploadResizedImage(file, 300, 250);
-
-        if (resizedImageUrl) {
-            const originalImageRef = ref(storage, `images/${file.name}`);
-            await deleteObject(originalImageRef);
-            console.log('Original image deleted successfully.');
-            displayImages(); // Atualizar a galeria após a exclusão
-        }
-    };
 
     const deleteImage = async (imagePath, index) => {
         try {
@@ -144,14 +97,14 @@ const Gallery = () => {
                                         onClick={() => openLightbox(image)}
                                     />
                                     {hoveredImage === `${date}-${index}` && (
-                                        <div className="absolute top-0 right-0">
+                                        <div >
                                             <img
                                                 src={`${process.env.PUBLIC_URL}/delete.png`}
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     deleteImage(image.ref, index);
                                                 }}
-                                                className="cursor-pointer bg-blue-500 hover:bg-blue-600 p-0.5 rounded shadow"
+                                                className="absolute top-0 right-0 cursor-pointer bg-blue-500 hover:bg-blue-600 p-0.5 rounded shadow"
                                                 alt=''
                                             />
                                             <button
@@ -159,7 +112,7 @@ const Gallery = () => {
                                                     e.stopPropagation();
                                                     addToAlbum(image.ref, index);
                                                 }}
-                                                className="bg-blue-500 hover:bg-blue-600 text-white font-bold text-2xl p-1 rounded-full shadow cursor-pointer"
+                                                className="absolute bottom-0 right-0 bg-blue-500 hover:bg-blue-600 text-white font-bold text-2xl p-1 rounded-full shadow cursor-pointer"
                                             >
                                                 +
                                             </button>
